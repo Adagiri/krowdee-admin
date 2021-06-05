@@ -35,7 +35,7 @@ const Tasks = () => {
     fetchPolicy: "no-cache",
   });
 
-  console.log(data, loading, error);
+  // console.log(data, loading, error);
 
   //chakra hooks
   const [smAndUp] = useMediaQuery("(max-width: 370px)");

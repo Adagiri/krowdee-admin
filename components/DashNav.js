@@ -50,8 +50,11 @@ const DashNav = () => {
             // rightIcon={<BiLogOut size="20px" />}
             onClick={() => {
               client.resetStore();
-              deleteToken("token")
+              deleteToken("token");
               Router.push("/login");
+              // setTimeout(() => {
+              //   Router.push("/");
+              // }, 500);
             }}
           >
             Logout

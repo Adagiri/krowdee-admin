@@ -19,17 +19,16 @@ import Router from "next/router";
 import { LOGIN } from "../state/remote/mutations";
 import { useAlert } from "react-alert";
 
-const token = getToken("token");
-
 const Login = () => {
   const alert = useAlert();
   const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");;
+  const [password, setPassword] = useState("");
   // const [error, setError] = uEeState(initialState);
   // const router = useRouter();
 
   const [login, { loading }] = useMutation(LOGIN);
   useEffect(() => {
+    const token = getToken("token");
     if (!!token) {
       Router.push("/");
     }
@@ -81,12 +80,11 @@ const Login = () => {
                     .then(async (data) => {
                       setToken("token", data.data.login.token);
                       setUser(data.data.login.user);
-
-                      alert.show("login successful", { type: "success" });
                       Router.push("/");
+                      alert.show("login successful", { type: "success" });
                     })
                     .catch((error) => {
-                      console.log(error)
+                      console.log(error);
                       alert.show(error.message, { type: "error" });
                     });
                   setUsername("");
