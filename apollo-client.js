@@ -4,7 +4,7 @@ import { ApolloClient, InMemoryCache, createHttpLink } from "@apollo/client";
 import { cache } from "./state/cache";
 
 const link = createHttpLink({
-  uri: process.env.NEXT_PUBLIC_SERVER_URI,
+  uri: "http://admin.server.krowdee.com/graphql",
   credentials: "include",
   connectToDevTools: true,
 });
