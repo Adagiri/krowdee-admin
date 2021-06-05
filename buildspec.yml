@@ -1,15 +1,13 @@
-# Do not change version. This is the version of aws buildspec, not the version of your buldspec file.
-version: 0.2
+env:
+  variables:
+    NODE_ENV: "production"
+
 phases:
   install:
     commands:
-      - echo not installing anything else
+      - echo Installing dependency...
       - npm install -g next
-  pre_build:
-    commands:
-      - echo Installing source NPM dependencies...
       - npm install
-      - aws --version
   build:
     commands:
       - echo Build started on `date`
@@ -19,4 +17,6 @@ artifacts:
   files:
     - .next/**/*
     - package.json
+    - next.config.js
+    - apollo-client.js
     - '**/*'
