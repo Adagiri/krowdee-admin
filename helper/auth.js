@@ -33,6 +33,7 @@ export const getUser = (user) => {
 export const deleteToken = (key) => {
   if (process.browser) {
     cookie.remove(key);
+    cookie.remove("httptoken")
   }
 };
 

@@ -1,13 +1,14 @@
 import { InMemoryCache } from "@apollo/client";
 import {
-  blobVar,
+  imageBlobVar,
   imageModalVar,
   imageVar,
-  previewImageVar,
+  imagePreviewVar,
   catVar,
   userVar,
   taskModalVar,
   editTaskVar,
+  imgVar,
 } from "./local";
 
 export const cache = new InMemoryCache({
@@ -24,9 +25,9 @@ export const cache = new InMemoryCache({
             return imageVar();
           },
         },
-        previewImage: {
+        imagePreview: {
           read() {
-            return previewImageVar();
+            return imagePreviewVar();
           },
         },
         imageModal: {
@@ -34,14 +35,9 @@ export const cache = new InMemoryCache({
             return imageModalVar();
           },
         },
-        blob: {
+        imageBlob: {
           read() {
-            return blobVar();
-          },
-        },
-        cat: {
-          read() {
-            return catVar();
+            return imageBlobVar();
           },
         },
         taskModal: {
@@ -54,7 +50,31 @@ export const cache = new InMemoryCache({
             return editTaskVar();
           },
         },
-
+        img: {
+          read() {
+            return imgVar();
+          },
+        },
+        txt: {
+          read() {
+            return txtVar();
+          },
+        },
+        cat: {
+          read() {
+            return catVar();
+          },
+        },
+        valid: {
+          read() {
+            return validVar();
+          },
+        },
+        opts: {
+          read() {
+            return optsVar();
+          },
+        },
         user: {
           read() {
             return userVar();

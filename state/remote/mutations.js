@@ -44,6 +44,18 @@ export const ADD_TASK = gql`
       success
       taskExist {
         txt
+        cat
+      }
+      currentTask {
+        _id
+        txt
+        img
+        cat
+        opts {
+          _id
+          opt
+        }
+        valid
       }
     }
   }
@@ -51,13 +63,14 @@ export const ADD_TASK = gql`
 
 //EDIT TASK
 
-export const EDIT_TASK_REMOTE = gql`
+export const EDIT_TASK = gql`
   mutation EditTask(
     $_id: ID!
-    $txt: String!
+    $txt: String
+    $prevTxt: String!
     $img: String
-    $valid: String!
-    $cat: String!
+    $valid: String
+    $cat: String
     $force: Boolean
     $opts: [optionInput]!
   ) {
@@ -65,6 +78,7 @@ export const EDIT_TASK_REMOTE = gql`
       input: {
         _id: $_id
         txt: $txt
+        prevTxt: $prevTxt
         opts: $opts
         valid: $valid
         cat: $cat
@@ -75,6 +89,18 @@ export const EDIT_TASK_REMOTE = gql`
       success
       taskExist {
         txt
+        cat
+      }
+      currentTask {
+        _id
+        txt
+        img
+        cat
+        opts {
+          _id
+          opt
+        }
+        valid
       }
     }
   }

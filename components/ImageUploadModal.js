@@ -18,34 +18,24 @@ import {
 
 import AvatarEditor from "react-avatar-editor";
 import {
-  blobVar,
   imageModalVar,
   imageVar,
-  previewImageVar,
+  imagePreviewVar,
+  imageblobVar,
 } from "../state/local";
-
-import { IMAGE, IMAGE_MODAL, PREVIEW_IMAGE } from "../state/local/utils";
-import { useQuery } from "@apollo/client";
-
-
+import { useReactiveVar } from "@apollo/client";
 
 function ImageUploadModal() {
   //react states
   const [editor, setEditor] = useState("");
 
-  //apollo-client-hooks
-  const {
-    data: { imageModal },
-  } = useQuery(IMAGE_MODAL);
-
-  const {
-    data: { previewImage },
-  } = useQuery(PREVIEW_IMAGE);
+  const imagePreview = useReactiveVar(imagePreviewVar);
+  const imageModal = useReactiveVar(imageModalVar);
 
   //component functions
   const closeModal = () => {
     imageModalVar(false);
-    previewImageVar("");
+    imagePreviewVar(null);
   };
   const handleImageChange = (event) => {
     const file = event.target.files[0];
@@ -53,7 +43,7 @@ function ImageUploadModal() {
     if (file) {
       reader.readAsDataURL(file);
       reader.addEventListener("load", () => {
-        previewImageVar(reader.result);
+        imagePreviewVar(reader.result);
       });
     }
   };
@@ -62,11 +52,10 @@ function ImageUploadModal() {
     if (editor) {
       editor.getImage().toBlob((blob) => {
         let imageUrl = URL.createObjectURL(blob);
-console.log(blob.type.slice(6))
         imageVar(imageUrl);
-        blobVar(blob);
+        imageblobVar(blob);
         imageModalVar(false);
-        previewImageVar("");
+        imagePreviewVar(null);
       });
     }
   };
@@ -94,16 +83,16 @@ console.log(blob.type.slice(6))
                 />
               </InputGroup>
             </FormControl>
-            {previewImage && (
+            {imagePreview && (
               <Flex align="center" justify="center">
                 {" "}
                 <AvatarEditor
-                  image={previewImage}
-                  width={200}
-                  height={200}
+                  image={imagePreview}
+                  width={250}
+                  height={250}
                   border={50}
                   color={[255, 255, 255, 0.6]} // RGBA
-                  scale={1.2}
+                  scale={1}
                   rotate={0}
                   ref={(node) => setEditor(node)}
                 />

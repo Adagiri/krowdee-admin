@@ -23,6 +23,7 @@ import TaskModal from "./TaskModal";
 
 import BarLoader from "react-spinners/BarLoader";
 import { taskModalVar } from "../state/local";
+import { FormControl } from "@chakra-ui/form-control";
 
 const Tasks = () => {
   const [cat, setCat] = useState(null);
@@ -31,7 +32,6 @@ const Tasks = () => {
   /////GET_TASKS
   const { data, loading, error, refetch } = useQuery(GET_TASKS, {
     variables: { cat, txt, cursor: 1 },
-    pollInterval: 30000,
     fetchPolicy: "no-cache",
   });
 
@@ -86,23 +86,25 @@ const Tasks = () => {
           />
         </Box>{" "}
         <Box pl="2" borderBottomWidth="1px">
-          <Select
-            placeholder="All"
-            variant="unstyled"
-            onChange={(e) => {
-              setCat(e.target.value);
-              setTimeout(() => refetch(), 500);
-            }}
-            cursor="pointer"
-          >
-            <option>Maths</option>
-            <option>Tech</option>
-            <option>Science</option>
-            <option>Finance</option>
-            <option>Programming</option>
-            <option>English</option>
-            <option>History</option>
-          </Select>
+          <FormControl>
+            <Select
+              placeholder="All"
+              variant="unstyled"
+              onChange={(e) => {
+                setCat(e.target.value);
+                setTimeout(() => refetch(), 500);
+              }}
+              cursor="pointer"
+            >
+              <option>Maths</option>
+              <option>Tech</option>
+              <option>Science</option>
+              <option>Finance</option>
+              <option>Programming</option>
+              <option>English</option>
+              <option>History</option>
+            </Select>
+          </FormControl>
         </Box>
       </Flex>
       <Grid

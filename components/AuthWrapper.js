@@ -4,7 +4,6 @@ import Login from "../pages/login";
 
 
 const token = getToken("token");
-console.log(token)
 const AuthWrapper = (Component) => {
   const Auth = () => {
     // if token exists, return component

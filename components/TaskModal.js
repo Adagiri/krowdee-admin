@@ -19,12 +19,21 @@ import {
 import { IconButton } from "@chakra-ui/button";
 import { Input, InputGroup, InputRightAddon } from "@chakra-ui/input";
 import {
-  blobVar,
+  imageblobVar,
   imageModalVar,
   catVar,
   imageVar,
   taskModalVar,
   editTaskVar,
+  txtVar,
+  optsVar,
+  validVar,
+  taskOptsInvalidVar,
+  taskExistVar,
+  taskUploadingVar,
+  taskInvalidsVar,
+  taskForceUploadingVar,
+  imgVar,
 } from "../state/local";
 import {
   FormControl,
@@ -39,156 +48,117 @@ import { BiMinus, BiPlus } from "react-icons/bi";
 import { BsCheckCircle } from "react-icons/bs";
 import { useAlert } from "react-alert";
 import { Img } from "@chakra-ui/image";
-import client from "../apollo-client";
 import ImageUploadModal from "./ImageUploadModal";
-import { gql, useLazyQuery, useMutation, useQuery } from "@apollo/client";
-import {
-  BLOB,
-  CAT,
-  EDIT_TASK,
-  IMAGE,
-  TASK_MODAL,
-  USER,
-} from "../state/local/utils";
+import { useMutation, useQuery, useReactiveVar } from "@apollo/client";
 
-import { GET_S3_URL, GET_TASKS } from "../state/remote/queries";
-import { getSignedUrl, resetFileUpload } from "../helper/files";
 import { Select } from "@chakra-ui/select";
 
-import { makeid } from "../helper/ids";
+import { makeid, taskReset } from "../helper/functions";
 import { useDisclosure } from "@chakra-ui/hooks";
-import { getToken, getUser } from "../helper/auth";
+import { getUser } from "../helper/auth";
 import axios from "axios";
-import { ADD_TASK, EDIT_TASK_REMOTE } from "../state/remote/mutations";
-
-let arr = [
-  { _id: makeid(4), opt: "" },
-  { _id: makeid(4), opt: "" },
-];
+import { ADD_TASK, EDIT_TASK } from "../state/remote/mutations";
 
 function TaskModal({ refetch }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const user = getUser()._id;
+  const _id = getUser()._id;
 
-  //alert hook==================================================================start
   const alert = useAlert();
 
-  //apollo client================================================================start
-
-  //task to edit
-  const {
-    data: { taskToEdit },
-  } = useQuery(EDIT_TASK);
-
-  console.log(taskToEdit);
-
-  //image
-  const {
-    data: { image },
-  } = useQuery(IMAGE);
-
-  //blob
-  const {
-    data: { blob },
-  } = useQuery(BLOB);
-
-  //task modal
-  const {
-    data: { taskModal },
-  } = useQuery(TASK_MODAL);
+  //states
+  const taskModal = useReactiveVar(taskModalVar);
+  const txt = useReactiveVar(txtVar);
+  const cat = useReactiveVar(catVar);
+  const opts = useReactiveVar(optsVar);
+  const valid = useReactiveVar(validVar);
+  const image = useReactiveVar(imageVar);
+  const invalids = useReactiveVar(taskInvalidsVar);
+  const invalidOpts = useReactiveVar(taskOptsInvalidVar);
+  const imageblob = useReactiveVar(imageblobVar);
+  const imageModal = useReactiveVar(imageModalVar);
+  const editTask = useReactiveVar(editTaskVar);
+  const img = useReactiveVar(imgVar);
+  const taskExist = useReactiveVar(taskExistVar);
+  const taskUploading = useReactiveVar(taskUploadingVar);
+  const taskForceUploading = useReactiveVar(taskForceUploadingVar);
 
   //add task
   const [addTask, {}] = useMutation(ADD_TASK);
 
   //edit task
-  const [editTask, {}] = useMutation(EDIT_TASK_REMOTE);
+  const [editTaskRemote, {}] = useMutation(EDIT_TASK);
 
-  //react hooks============================================================================start
-
-  //state
-  const [txt, setText] = useState("");
-  const [opts, setOpts] = useState(arr);
-  const [cat, setCat] = useState("");
-  const [valid, setValid] = useState("");
-  const [invalid, setInvalid] = useState([]);
-  const [optInvalids, setOptInvalids] = useState([]);
-  const [_id, setId] = useState("");
-  const [img, setImg] = useState("");
-  const [imge, setImge] = useState(false);
-  const [taskExist, setTaskExist] = useState([]);
-  const [taskExistDialog, setTaskExistDialog] = useState(false);
-
-  //ref
   const initialRef = React.useRef();
   const finalRef = React.useRef();
 
+  let variables = {
+    cat: cat.toLowerCase(),
+    opts,
+    valid,
+    txt,
+    force: false,
+  };
+
   //effect
   useEffect(() => {
-    if (taskToEdit) {
-      console.log(taskToEdit);
-      setText(taskToEdit.txt);
-      setValid(taskToEdit.valid);
-      setOpts(
-        taskToEdit.opts.map((opt) => {
-          return { _id: opt._id, opt: opt.opt };
-        })
-      );
-      // console.log(taskToEdit.opts.map((opt) => {
-      //   opt._id, opt.opt;
-      // }))
-      setCat(taskToEdit.cat.charAt(0).toUpperCase() + taskToEdit.cat.slice(1));
-      setImge(taskToEdit.img);
+    return () => {};
+  }, []);
+
+  const handleClose = () => {
+    taskReset("closeModal");
+  };
+
+  const closeDialog = () => {
+    taskExistVar([[], {}]);
+    taskUploadingVar(false);
+  };
+
+  const validateFields = () => {
+    if (!cat) {
+      alert.show("category not set", { type: "error", timeout: 1500 });
+      taskInvalidsVar([...invalids, "cat"]);
+
+      return false;
+    } else if (txt === "" || txt.length < 5) {
+      alert.show("question text too short", { type: "error", timeout: 1500 });
+      taskInvalidsVar([...invalids, "txt"]);
+      return false;
+    } else if (opts.find((opt) => opt.opt === "")) {
+      opts.forEach((opt) => {
+        if (opt.opt === "") {
+          taskOptsInvalidVar([...invalidOpts, opt._id]);
+          taskInvalidsVar([...invalids, "opts"]);
+        }
+      });
+      alert.show("an option isn't set", { type: "error", timeout: 1500 });
+      return false;
+    } else if (valid === "") {
+      alert.show("Tick a valid option", { type: "error", timeout: 1500 });
+      taskInvalidsVar([...invalids, "valid"]);
+      return false;
+    } else {
+      return true;
     }
-    setId(getUser()._id);
-    return () => {
-      // editTaskVar(false);
-    };
-  }, [taskToEdit, img]);
-
-  //functions============================================================================start
-  let variables = { cat: cat.toLowerCase(), img, opts, valid, txt };
-
-  const handleValidChange = (_id) => {
-    setInvalid([]);
-    setValid(_id);
-  };
-
-  const handleOptionChange = (e) => {
-    const { name, value } = e.target;
-    setOptInvalids([]);
-    setOpts(
-      opts.map((item) => (item._id === name ? { ...item, opt: value } : item))
-    );
-  };
-
-  const handleClose = (e) => {
-    resetFileUpload();
-    setText("");
-    setValid("");
-    setOpts(arr);
-    setText("");
-    setCat("");
-    imageVar(false);
-    onClose();
-    taskModalVar(false);
   };
 
   const handleSubmit = async () => {
     try {
-      variables = { ...variables, force: false };
-      setInvalid([]);
+      taskUploadingVar(true);
+
+      taskInvalidsVar([]);
       if (!validateFields()) {
+        taskUploadingVar(false);
         return "";
       }
 
-      if (blob) {
+      if (imageblob) {
         //generate image url
         const signedUrl = await axios.post(
           "http://localhost:9000/graphql",
           {
             query: `
         query GetS3Url {
-          getSignedUrl(input: { _id: "${_id}", contentType: "${blob.type}" }) {
+          getSignedUrl(input: { _id: "${_id}", contentType: "${imageblob.type}" }) {
             url
             key
           }
@@ -199,106 +169,104 @@ function TaskModal({ refetch }) {
             withCredentials: true,
           }
         );
-        const imgUrl = signedUrl.data.data.getSignedUrl.url;
-        setImg(imgUrl);
+        const presignedImgUrl = signedUrl.data.data.getSignedUrl.url;
+        const imgUrl = signedUrl.data.data.getSignedUrl.key;
+
+        imgVar(imgUrl);
+
         //upload the image file
-        const uploadImg = await axios.put(imgUrl, blob, {
-          headers: {
-            "Content-Type": blob.type,
-          },
-        });
-        console.log(uploadImg);
+        axios
+          .put(presignedImgUrl, imageblob, {
+            headers: {
+              "Content-Type": imageblob.type,
+            },
+          })
+          .then(() =>
+            handleTaskUpload({
+              ...variables,
+              img: imgUrl,
+            })
+          );
         //upload task
-        handleTaskUpload();
+      } else {
+        handleTaskUpload(variables);
       }
-
-      handleTaskUpload();
     } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const validateFields = () => {
-    //CHECK IF CATEGORY IS NOT SET
-
-    if (cat === "") {
-      alert.show("category not set", { type: "error" });
-      setInvalid([...invalid, "cat"]);
-
-      return false;
-    }
-
-    //CHECK IF TEXT IS NOT SET or too short
-    else if (txt === "" || txt.length < 5) {
-      alert.show("question is too short", { type: "error" });
-      setInvalid([...invalid, "txt"]);
-      return false;
-    }
-
-    //CHECK IF ANY OPTION IS EMPTY
-    else if (opts.find((opt) => opt.opt === "")) {
-      opts.forEach(async (opt) => {
-        if (opt.opt === "") {
-          await setOptInvalids([opt._id, ...optInvalids]);
-          setInvalid([...invalid, "opts"]);
-        }
-      });
-      alert.show("an option isn't set", { type: "error" });
-      return false;
-    }
-
-    //CHECK IF VALID WAS NOT SET
-    else if (valid === "") {
-      alert.show("Tick a valid option", { type: "error" });
-      setInvalid([...invalid, "valid"]);
-      return false;
-    } else {
-      return true;
+      taskUploadingVar(false);
+      alert.show("something went wrong", { type: "error" });
     }
   };
 
   //force task upload handler
   const forceTaskUpload = async () => {
-    variables = { ...variables, force: true };
-    await handleTaskUpload();
-    setTaskExistDialog(false);
+    taskForceUploadingVar(true);
+    const { __typename, ...rest } = taskExist[1];
+    handleTaskUpload({
+      ...rest,
+      force: true,
+      opts: rest.opts.map((opt) => {
+        return { opt: opt.opt, _id: opt._id };
+      }),
+    });
   };
 
   //task upload handler
-  const handleTaskUpload = () => {
-    console.log(taskToEdit);
-    if (taskToEdit) {
-      editTask({
-        variables: { ...variables, _id: taskToEdit._id },
+  const handleTaskUpload = (variables) => {
+    if (editTask) {
+      //on the server,
+      editTaskRemote({
+        variables: {
+          ...variables,
+          _id: editTask._id,
+          prevTxt: editTask.txt,
+          img: variables.img
+            ? variables.img
+            : editTask.img
+            ? editTask.img
+            : null,
+        },
       })
         .then((data) => {
+          taskUploadingVar(false);
           if (data.data.editTask.success === true) {
             alert.show("Task edited", { type: "success" });
-            taskModalVar(false);
+
             refetch();
+            taskReset("closeModal");
+          } else {
+            taskExistVar([
+              data.data.editTask.taskExist,
+              data.data.editTask.currentTask,
+            ]);
           }
         })
         .catch((error) => {
-          alert.show(error.message, { type: "error" });
+          alert.show("error, something went wrong", { type: "error" });
+          taskUploadingVar(false);
         });
     } else {
       addTask({
         variables,
       })
         .then((data) => {
+          taskUploadingVar(false);
+          console.log(data);
           if (data.data.addTask.success === false) {
-            setTaskExist(data.data.addTask.taskExist);
-            setTaskExistDialog(true);
+            taskExistVar([
+              data.data.addTask.taskExist,
+              data.data.addTask.currentTask,
+            ]);
           } else {
             alert.show("Task added", { type: "success" });
-            setOpts(arr)
-            setValid("")
-            setText("")
+            taskForceUploadingVar(false);
+            taskReset();
             refetch();
           }
         })
         .catch((error) => {
-          alert.show(error.message, { type: "error" });
+          alert.show("error, something went wrong", { type: "error" });
+          taskUploadingVar(false);
+          taskForceUploadingVar(false);
         });
     }
   };
@@ -315,21 +283,16 @@ function TaskModal({ refetch }) {
       >
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>{taskToEdit ? "Edit Task" : "Add Task"}</ModalHeader>
-          <ModalCloseButton
-            onClick={() => {
-              taskModalVar(false);
-              onClose();
-            }}
-          />
+          <ModalHeader>{editTask ? "Edit Task" : "Add Task"}</ModalHeader>
+          <ModalCloseButton onClick={handleClose} />
           <ModalBody pb={6}>
-            <FormControl isRequired isInvalid={invalid.indexOf("cat") !== -1}>
+            <FormControl isRequired isInvalid={invalids.indexOf("cat") !== -1}>
               <FormLabel>Category</FormLabel>
               <Select
                 value={cat}
                 onChange={(e) => {
-                  setCat(e.target.value);
-                  setInvalid([]);
+                  catVar(e.target.value);
+                  taskInvalidsVar([]);
                 }}
                 placeholder="Select category"
               >
@@ -342,26 +305,26 @@ function TaskModal({ refetch }) {
                 <option>History</option>
               </Select>
               <FormErrorMessage>
-                {invalid.indexOf("cat") !== -1 && "category not set"}
+                {invalids.indexOf("cat") !== -1 && "category not set"}
               </FormErrorMessage>
             </FormControl>
             <FormControl
               mt={4}
               isRequired
-              isInvalid={invalid.indexOf("txt") !== -1}
+              isInvalid={invalids.indexOf("txt") !== -1}
             >
               <FormLabel>Text</FormLabel>
               <Input
                 value={txt}
                 onChange={(e) => {
-                  setText(e.target.value);
-                  setInvalid([]);
+                  txtVar(e.target.value);
+                  taskInvalidsVar([]);
                 }}
                 ref={initialRef}
                 placeholder="task question"
               />
               <FormErrorMessage>
-                {invalid.indexOf("txt") !== -1 && "text too short"}
+                {invalids.indexOf("txt") !== -1 && "text too short"}
               </FormErrorMessage>
             </FormControl>
 
@@ -372,8 +335,8 @@ function TaskModal({ refetch }) {
                 ml={2}
                 icon={<BiMinus />}
                 onClick={() => {
-                  opts.length > 2 && setOpts(opts.slice(0, -1));
-                  setValid("");
+                  opts.length > 2 && optsVar(opts.slice(0, -1));
+                  validVar("");
                 }}
                 aria-label="minus-button"
               />
@@ -385,8 +348,8 @@ function TaskModal({ refetch }) {
                 icon={<BiPlus />}
                 onClick={() => {
                   opts.length < 5 &&
-                    setOpts([...opts, { _id: makeid(4), opt: "" }]);
-                  setValid("");
+                    optsVar([...opts, { _id: makeid(4), opt: "" }]);
+                  validVar("");
                 }}
                 aria-label="add-button"
               />
@@ -404,31 +367,41 @@ function TaskModal({ refetch }) {
                           outlineOffset="none"
                           size="xs"
                           aria-label="check-button"
-                          name={option._id}
-                          onClick={() => handleValidChange(option._id)}
-                          // bg={option._id === valid && "#fff"}
+                          onClick={() => {
+                            validVar(option._id);
+                            taskInvalidsVar([]);
+                          }}
                           color={option._id === valid && "#51ff0d"}
                         />
                       </InputRightAddon>{" "}
                       <Input
                         placeholder="type option"
                         value={option.opt}
-                        name={option._id}
                         isRequired
-                        isInvalid={optInvalids.indexOf(option._id) !== -1}
-                        onChange={handleOptionChange}
+                        isInvalid={invalidOpts.indexOf(option._id) !== -1}
+                        onChange={(e) => {
+                          optsVar(
+                            opts.map((opt) =>
+                              opt._id === option._id
+                                ? { ...opt, opt: e.target.value }
+                                : opt
+                            )
+                          );
+                          taskOptsInvalidVar([]);
+                          taskInvalidsVar([]);
+                        }}
                       />
                     </InputGroup>
                   </FormControl>
                 </Box>
               ))}
             </SimpleGrid>
-            {optInvalids.length >= 1 && (
+            {invalidOpts.length >= 1 && (
               <Box color="#EE8081">some options fields are empty</Box>
             )}
             <Box color="#EE8081">
               {" "}
-              {invalid.indexOf("valid") !== -1 && "tick your valid option"}
+              {invalids.indexOf("valid") !== -1 && "tick your valid option"}
             </Box>
             <FormControl mt="7">
               <Flex alignItems="center">
@@ -438,26 +411,42 @@ function TaskModal({ refetch }) {
                   size="sm"
                   onClick={() => imageModalVar(true)}
                 >
-                  {image === false ? "Upload" : "Replace"}
+                  {image === null ? "Upload" : "Replace"}
                 </Button>
                 {image && (
                   <Button
                     ml={3}
                     size="sm"
-                    color="red"
-                    onClick={() => imageVar(false)}
+                    colorScheme="red"
+                    onClick={() => {
+                      imageVar(null);
+                      editTaskVar({ ...editTask, img: null });
+                    }}
                   >
                     Remove
                   </Button>
                 )}
               </Flex>
 
-              {imge && <Img mt={3} width="40%" height="40%" src={imge} />}
+              {image && (
+                <Img
+                  mt={3}
+                  width="20%"
+                  height="20%"
+                  src={
+                    image && imageblob
+                      ? image
+                      : `https://krowdee-prime-123.s3.amazonaws.com/${image}`
+                  }
+                />
+              )}
               <FormHelperText>images are optional</FormHelperText>
             </FormControl>
           </ModalBody>
           <ModalFooter>
             <Button
+              isLoading={taskUploading}
+              isDisabled={taskUploading}
               colorScheme="blue"
               mr={3}
               onClick={handleSubmit}
@@ -473,26 +462,37 @@ function TaskModal({ refetch }) {
       </Modal>
       <AlertDialog
         motionPreset="slideInBottom"
-        onClose={() => setTaskExistDialog(false)}
-        isOpen={taskExistDialog}
+        onClose={closeDialog}
+        isOpen={taskExist[0].length > 0}
         isCentered
       >
         <AlertDialogOverlay />
 
         <AlertDialogContent>
-          <AlertDialogHeader>Delete Task?</AlertDialogHeader>
-          <AlertDialogCloseButton onClick={() => setTaskExistDialog(false)} />
+          <AlertDialogHeader>force Task upload?</AlertDialogHeader>
+          <AlertDialogCloseButton onClick={closeDialog} />
           <AlertDialogBody>
             <Box>similar task/tasks already exist:</Box>
 
-            {taskExist.map((task) => (
-              <Badge colorScheme="blue">{task.txt}</Badge>
+            {taskExist[0].map((task) => (
+              <div key={task._id}>
+                <Badge colorScheme="green">{task.txt}</Badge>
+                <Badge colorScheme="blue">{task.cat}</Badge>
+              </div>
             ))}
             <Box> Do you still want to upload it?</Box>
           </AlertDialogBody>
           <AlertDialogFooter>
-            <Button onClick={() => setTaskExistDialog(false)}>No</Button>
-            <Button colorScheme="red" ml={3} onClick={() => forceTaskUpload()}>
+            <Button onClick={closeDialog}>No</Button>
+            <Button
+              colorScheme="red"
+              isLoading={taskForceUploading}
+              isDisabled={taskForceUploading}
+              ml={3}
+              onClick={() => {
+                forceTaskUpload();
+              }}
+            >
               Yes
             </Button>
           </AlertDialogFooter>

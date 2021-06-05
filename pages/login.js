@@ -13,33 +13,27 @@ import {
 import { Input } from "@chakra-ui/input";
 import { Image } from "@chakra-ui/image";
 import { useQuery, gql, useMutation } from "@apollo/client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { authenticate, getToken, setToken, setUser } from "../helper/auth";
-import { useRouter } from "next/router";
+import Router from "next/router";
 import { LOGIN } from "../state/remote/mutations";
 import { useAlert } from "react-alert";
-import { userVar } from "../state/local";
 
 const token = getToken("token");
 
 const Login = () => {
   const alert = useAlert();
   const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [password, setPassword] = useState("");;
   // const [error, setError] = uEeState(initialState);
-  const router = useRouter();
+  // const router = useRouter();
 
   const [login, { loading }] = useMutation(LOGIN);
-  // if (data) {
-  //   console.log(data);
-  //   router.push("/");
-  //   return
-  // }
-
-  if (token) {
-    router.push("/");
-    return <div />;
-  }
+  useEffect(() => {
+    if (!!token) {
+      Router.push("/");
+    }
+  }, []);
 
   return (
     <div>
@@ -85,14 +79,14 @@ const Login = () => {
                   e.preventDefault();
                   login({ variables: { username, password } })
                     .then(async (data) => {
-                      await setToken("token", data.data.login.token);
+                      setToken("token", data.data.login.token);
                       setUser(data.data.login.user);
-                      await userVar(data.data.login.user);
-                      alert.show("login successful", { type: "success" })
-                      router.push("/");
-                      
+
+                      alert.show("login successful", { type: "success" });
+                      Router.push("/");
                     })
                     .catch((error) => {
+                      console.log(error)
                       alert.show(error.message, { type: "error" });
                     });
                   setUsername("");

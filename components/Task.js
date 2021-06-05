@@ -17,7 +17,15 @@ import {
 import { useAlert } from "react-alert";
 import { useMutation } from "@apollo/client";
 import { DELETE_TASK } from "../state/remote/mutations";
-import { catVar, editTaskVar, taskModalVar } from "../state/local";
+import {
+  catVar,
+  editTaskVar,
+  imageVar,
+  optsVar,
+  taskModalVar,
+  txtVar,
+  validVar,
+} from "../state/local";
 
 function Task({ task, refetch }) {
   //alert component
@@ -71,8 +79,18 @@ function Task({ task, refetch }) {
                   cursor="pointer"
                   onClick={() => {
                     editTaskVar(task);
-                    catVar(task.cat);
-
+                    catVar(
+                      task.cat[0].toUpperCase() +
+                        task.cat.slice(1).toLowerCase()
+                    );
+                    imageVar(task.img && task.img);
+                    txtVar(task.txt);
+                    optsVar(
+                      task.opts.map((opt) => {
+                        return { opt: opt.opt, _id: opt._id };
+                      })
+                    );
+                    validVar(task.valid);
                     taskModalVar(true);
                   }}
                 />

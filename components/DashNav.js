@@ -2,7 +2,7 @@ import { Button, IconButton } from "@chakra-ui/button";
 import { useColorMode } from "@chakra-ui/color-mode";
 import { Badge, Box, Container, Flex, Text } from "@chakra-ui/layout";
 import { useBreakpointValue, useMediaQuery } from "@chakra-ui/media-query";
-import { useRouter } from "next/router";
+import Router from "next/router";
 import Link from "next/link";
 import { FaHome } from "react-icons/fa";
 import { BiLogOut } from "react-icons/bi";
@@ -15,7 +15,7 @@ const DashNav = () => {
   const iconSize = useBreakpointValue({ base: "18px", sm: "20px" });
   const buttonType = useBreakpointValue({ base: IconButton, sm: Button });
   const [smAndUp] = useMediaQuery("(min-width: 479px)");
-  const router = useRouter();
+  // const router = useRouter();
 
   return (
     <Box
@@ -35,7 +35,7 @@ const DashNav = () => {
             aria-label={smAndUp ? "trophy" : null}
             // icon={smAndUp ? null : <FaHome size="18px" size={iconSize} />}
             leftIcon={<FaHome size="20px" />}
-            onClick={() => router.push("/")}
+            onClick={() => Router.push("/")}
           >
             Home
           </Button>
@@ -50,8 +50,8 @@ const DashNav = () => {
             // rightIcon={<BiLogOut size="20px" />}
             onClick={() => {
               client.resetStore();
-              deleteToken("token");
-              setTimeout(() => router.push("/login", 2000));
+              deleteToken("token")
+              Router.push("/login");
             }}
           >
             Logout
