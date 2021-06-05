@@ -2,8 +2,6 @@
 version: 0.2
 phases:
   install:
-    runtime-versions:
-      nodejs: 10
     commands:
       - echo not installing anything else
       - npm install -g next
@@ -21,3 +19,4 @@ artifacts:
   files:
     - .next/**/*
     - package.json
+    - '**/*'
