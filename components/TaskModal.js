@@ -154,7 +154,7 @@ function TaskModal({ refetch }) {
       if (imageblob) {
         //generate image url
         const signedUrl = await axios.post(
-          process.env.NEXT_PUBLIC_SERVER_URI,
+          "http://admin.server.krowdee.com/graphql",
           {
             query: `
         query GetS3Url {
