@@ -154,7 +154,7 @@ function TaskModal({ refetch }) {
       if (imageblob) {
         //generate image url
         const signedUrl = await axios.post(
-          "http://localhost:9000/graphql",
+          process.env.NEXT_PUBLIC_SERVER_URI,
           {
             query: `
         query GetS3Url {

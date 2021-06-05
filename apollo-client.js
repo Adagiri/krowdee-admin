@@ -4,7 +4,7 @@ import { setContext } from "@apollo/client/link/context";
 import { cache } from "./state/cache";
 
 const link = createHttpLink({
-  uri: "http://localhost:9000/graphql",
+  uri: process.env.NEXT_PUBLIC_SERVER_URI,
   credentials: "include",
   connectToDevTools: true,
 });
