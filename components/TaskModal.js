@@ -49,7 +49,7 @@ import { BsCheckCircle } from "react-icons/bs";
 import { useAlert } from "react-alert";
 import { Img } from "@chakra-ui/image";
 import ImageUploadModal from "./ImageUploadModal";
-import { useMutation, useQuery, useReactiveVar } from "@apollo/client";
+import { useMutation,  useReactiveVar } from "@apollo/client";
 
 import { Select } from "@chakra-ui/select";
 
