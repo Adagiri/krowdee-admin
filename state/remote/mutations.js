@@ -27,12 +27,18 @@ export const ADD_TASK = gql`
     $txt: String!
     $img: String
     $valid: String!
-    $cat: String!
+    $cat: [String!]!
     $force: Boolean
     $opts: [optionInput]!
+    $exp: String
+    $ref: String
+    $author: String!
   ) {
     addTask(
       input: {
+        exp: $exp
+        ref: $ref
+        author: $author
         txt: $txt
         opts: $opts
         valid: $valid
@@ -47,6 +53,8 @@ export const ADD_TASK = gql`
         cat
       }
       currentTask {
+        exp
+        ref
         _id
         txt
         img
@@ -70,12 +78,16 @@ export const EDIT_TASK = gql`
     $prevTxt: String!
     $img: String
     $valid: String
-    $cat: String
+    $cat: [String!]!
     $force: Boolean
     $opts: [optionInput]!
+    $exp: String
+    $ref: String
   ) {
     editTask(
       input: {
+        exp: $exp
+        ref: $ref
         _id: $_id
         txt: $txt
         prevTxt: $prevTxt
@@ -92,6 +104,8 @@ export const EDIT_TASK = gql`
         cat
       }
       currentTask {
+        exp
+        ref
         _id
         txt
         img

@@ -10,9 +10,8 @@ import { GrFormAdd } from "react-icons/gr";
 
 import DashNav from "./DashNav";
 import Head from "next/head";
-import { Input, InputGroup, InputRightAddon } from "@chakra-ui/input";
+import { Input } from "@chakra-ui/input";
 
-import { useDisclosure } from "@chakra-ui/hooks";
 import { Select } from "@chakra-ui/select";
 
 import { GET_S3_URL, GET_TASKS } from "../state/remote/queries";
@@ -45,6 +44,8 @@ const Tasks = () => {
   const router = useRouter();
 
   let [color, setColor] = useState("#ffffff");
+
+  console.log(data, loading, error);
 
   return (
     <Box>

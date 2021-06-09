@@ -20,11 +20,13 @@ import { DELETE_TASK } from "../state/remote/mutations";
 import {
   catVar,
   editTaskVar,
+  expVar,
   imageVar,
   optsVar,
   taskModalVar,
   txtVar,
   validVar,
+  refVar,
 } from "../state/local";
 
 function Task({ task, refetch }) {
@@ -36,6 +38,8 @@ function Task({ task, refetch }) {
   //chakra ui
   const { isOpen, onOpen, onClose } = useDisclosure();
   const cancelRef = React.useRef();
+
+  console.log(task);
 
   if (deleteTaskError)
     alert.show(error, {
@@ -70,7 +74,7 @@ function Task({ task, refetch }) {
           <Flex>
             {" "}
             <Badge mr="2" borderRadius="full" px="2" colorScheme="teal">
-              {task.cat}
+              {task.cat[0]}
             </Badge>
             <Tooltip hasArrow label="edit Task" fontSize="md">
               <span>
@@ -79,10 +83,7 @@ function Task({ task, refetch }) {
                   cursor="pointer"
                   onClick={() => {
                     editTaskVar(task);
-                    catVar(
-                      task.cat[0].toUpperCase() +
-                        task.cat.slice(1).toLowerCase()
-                    );
+                    catVar([...task.cat]);
                     imageVar(task.img && task.img);
                     txtVar(task.txt);
                     optsVar(
@@ -90,6 +91,8 @@ function Task({ task, refetch }) {
                         return { opt: opt.opt, _id: opt._id };
                       })
                     );
+                    expVar(task.exp);
+                    refVar(task.ref);
                     validVar(task.valid);
                     taskModalVar(true);
                   }}

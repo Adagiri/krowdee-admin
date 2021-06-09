@@ -15,6 +15,8 @@ import {
   imgVar,
   imagePreviewVar,
   taskForceUploadingVar,
+  expVar,
+  refVar,
 } from "../state/local";
 import { arr } from "./variables";
 
@@ -32,10 +34,12 @@ export const taskReset = (type) => {
   imagePreviewVar(null);
   imgVar("");
   taskForceUploadingVar(false)
+  expVar("")
+  refVar("")
 
   if (type === "closeModal") {
     taskModalVar(false);
-    catVar("");
+    catVar([]);
     editTaskVar(null);
   }
 };

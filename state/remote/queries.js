@@ -14,6 +14,8 @@ export const GET_S3_URL = gql`
 export const GET_TASKS = gql`
   query GetTasks($cat: String, $cursor: Int, $txt: String) {
     getTasks(input: { cat: $cat, cursor: $cursor, txt: $txt }) {
+      exp
+      ref
       _id
       txt
       cat

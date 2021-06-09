@@ -34,6 +34,8 @@ import {
   taskInvalidsVar,
   taskForceUploadingVar,
   imgVar,
+  expVar,
+  refVar,
 } from "../state/local";
 import {
   FormControl,
@@ -49,7 +51,7 @@ import { BsCheckCircle } from "react-icons/bs";
 import { useAlert } from "react-alert";
 import { Img } from "@chakra-ui/image";
 import ImageUploadModal from "./ImageUploadModal";
-import { useMutation,  useReactiveVar } from "@apollo/client";
+import { useMutation, useReactiveVar } from "@apollo/client";
 
 import { Select } from "@chakra-ui/select";
 
@@ -61,6 +63,7 @@ import { ADD_TASK, EDIT_TASK } from "../state/remote/mutations";
 
 function TaskModal({ refetch }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
+
   const _id = getUser()._id;
 
   const alert = useAlert();
@@ -78,6 +81,8 @@ function TaskModal({ refetch }) {
   const imageModal = useReactiveVar(imageModalVar);
   const editTask = useReactiveVar(editTaskVar);
   const img = useReactiveVar(imgVar);
+  const exp = useReactiveVar(expVar);
+  const ref = useReactiveVar(refVar);
   const taskExist = useReactiveVar(taskExistVar);
   const taskUploading = useReactiveVar(taskUploadingVar);
   const taskForceUploading = useReactiveVar(taskForceUploadingVar);
@@ -92,11 +97,14 @@ function TaskModal({ refetch }) {
   const finalRef = React.useRef();
 
   let variables = {
-    cat: cat.toLowerCase(),
+    cat: cat.map((category) => category.toLowerCase()),
     opts,
     valid,
     txt,
+    ref,
+    exp,
     force: false,
+    author: "admin",
   };
 
   //effect
@@ -114,8 +122,11 @@ function TaskModal({ refetch }) {
   };
 
   const validateFields = () => {
-    if (!cat) {
-      alert.show("category not set", { type: "error", timeout: 1500 });
+    if (cat.length === 0) {
+      alert.show("you must pick 1 category at least", {
+        type: "error",
+        timeout: 1500,
+      });
       taskInvalidsVar([...invalids, "cat"]);
 
       return false;
@@ -291,7 +302,26 @@ function TaskModal({ refetch }) {
               <Select
                 value={cat}
                 onChange={(e) => {
-                  catVar(e.target.value);
+                  var catz = e.target.value.toLowerCase();
+
+                  if (cat.indexOf(catz) !== -1) {
+                    let categories = cat;
+                    categories = categories.filter(
+                      (category) => category !== catz
+                    );
+                    catVar(categories);
+                    return;
+                 
+                  }
+                  if (cat.length >= 3) {
+                    alert.show("categories cannot exceed 3", { type: "error" });
+                    return;
+                  }
+                  if (cat.indexOf(catz) === -1) {
+                    catVar([...cat, catz]);
+                 
+                  }
+
                   taskInvalidsVar([]);
                 }}
                 placeholder="Select category"
@@ -304,6 +334,13 @@ function TaskModal({ refetch }) {
                 <option>English</option>
                 <option>History</option>
               </Select>
+              <Box mt={2}>
+                {cat.map((category) => (
+                  <Badge colorScheme="blue" mr="2">
+                    {category}
+                  </Badge>
+                ))}
+              </Box>
               <FormErrorMessage>
                 {invalids.indexOf("cat") !== -1 && "category not set"}
               </FormErrorMessage>
@@ -403,6 +440,36 @@ function TaskModal({ refetch }) {
               {" "}
               {invalids.indexOf("valid") !== -1 && "tick your valid option"}
             </Box>
+            <FormControl mt={4}>
+              <FormLabel>Explanation</FormLabel>
+              <Input
+                value={exp}
+                onChange={(e) => {
+                  expVar(e.target.value);
+                }}
+                ref={initialRef}
+                placeholder="task explanation"
+              />
+              <FormHelperText>
+                Explanation of your answer (optional)
+              </FormHelperText>
+            </FormControl>
+
+            <FormControl mt={4}>
+              <FormLabel>Reference</FormLabel>
+              <Input
+                value={ref}
+                onChange={(e) => {
+                  refVar(e.target.value);
+                }}
+                ref={initialRef}
+                placeholder="reference"
+              />
+              <FormHelperText>
+                provide a link or any other reference related to this question
+                (optional)
+              </FormHelperText>
+            </FormControl>
             <FormControl mt="7">
               <Flex alignItems="center">
                 <FormLabel>Image</FormLabel>
